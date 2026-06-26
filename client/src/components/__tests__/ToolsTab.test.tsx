@@ -1100,6 +1100,56 @@ describe("ToolsTab", () => {
       expect(mockCallTool).toHaveBeenCalled();
     });
 
+    it("should send updated JSON parameters when Run Tool is clicked before debounce completes", async () => {
+      const mockCallTool = jest.fn();
+      const toolWithObjectParam: Tool = {
+        name: "objectTool",
+        description: "Tool with object parameter",
+        inputSchema: {
+          type: "object" as const,
+          required: ["payload"],
+          properties: {
+            payload: {
+              type: "object" as const,
+            },
+          },
+        },
+      };
+
+      renderToolsTab({
+        tools: [toolWithObjectParam],
+        selectedTool: toolWithObjectParam,
+        callTool: mockCallTool,
+      });
+
+      const textarea = screen.getAllByRole("textbox")[0];
+
+      fireEvent.change(textarea, {
+        target: { value: '{ "key": "value1" }' },
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 350));
+      });
+
+      fireEvent.change(textarea, {
+        target: { value: '{ "key": "value2" }' },
+      });
+
+      const runButton = screen.getByRole("button", { name: /run tool/i });
+      await act(async () => {
+        fireEvent.click(runButton);
+      });
+
+      expect(mockCallTool).toHaveBeenCalledTimes(1);
+      expect(mockCallTool).toHaveBeenCalledWith(
+        "objectTool",
+        { payload: { key: "value2" } },
+        undefined,
+        false,
+      );
+    });
+
     it("should handle mixed valid and invalid JSON parameters", async () => {
       const mockCallTool = jest.fn();
       renderToolsTab({

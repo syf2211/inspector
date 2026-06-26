@@ -12,7 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import DynamicJsonForm, { DynamicJsonFormRef } from "./DynamicJsonForm";
+import DynamicJsonForm, {
+  collectValidatedParams,
+  DynamicJsonFormRef,
+} from "./DynamicJsonForm";
 import type { JsonValue, JsonSchemaType } from "@/utils/jsonUtils";
 import {
   generateDefaultValue,
@@ -215,10 +218,14 @@ const ToolsTab = ({
 
   // Function to check if any form has validation errors
   const checkValidationErrors = (validateChildren: boolean = false) => {
+    if (validateChildren) {
+      const { hasErrors } = collectValidatedParams(params, formRefs.current);
+      setHasValidationErrors(hasErrors);
+      return hasErrors;
+    }
+
     const errors = Object.values(formRefs.current).some(
-      (ref) =>
-        ref &&
-        (validateChildren ? !ref.validateJson().isValid : ref.hasJsonError()),
+      (ref) => ref && ref.hasJsonError(),
     );
     setHasValidationErrors(errors);
     return errors;
@@ -807,8 +814,10 @@ const ToolsTab = ({
                 )}
                 <Button
                   onClick={async () => {
-                    // Validate JSON inputs before calling tool
-                    if (checkValidationErrors(true)) return;
+                    const { hasErrors, params: validatedParams } =
+                      collectValidatedParams(params, formRefs.current);
+                    setHasValidationErrors(hasErrors);
+                    if (hasErrors) return;
 
                     try {
                       setIsToolRunning(true);
@@ -828,7 +837,7 @@ const ToolsTab = ({
                       }, {});
                       await callTool(
                         selectedTool.name,
-                        params,
+                        validatedParams,
                         Object.keys(metadata).length ? metadata : undefined,
                         runAsTask,
                       );

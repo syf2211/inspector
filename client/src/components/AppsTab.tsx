@@ -32,7 +32,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import DynamicJsonForm, { DynamicJsonFormRef } from "./DynamicJsonForm";
+import DynamicJsonForm, {
+  collectValidatedParams,
+  DynamicJsonFormRef,
+} from "./DynamicJsonForm";
 import { JsonSchemaType, JsonValue } from "@/utils/jsonUtils";
 import {
   generateDefaultValue,
@@ -128,12 +131,10 @@ const AppsTab = ({
 
   // Function to check if any form has validation errors
   const checkValidationErrors = useCallback(() => {
-    const errors = Object.values(formRefs.current).some(
-      (ref) => ref && !ref.validateJson().isValid,
-    );
-    setHasValidationErrors(errors);
-    return errors;
-  }, []);
+    const { hasErrors } = collectValidatedParams(params, formRefs.current);
+    setHasValidationErrors(hasErrors);
+    return hasErrors;
+  }, [params]);
 
   // Filter tools that have UI metadata
   useEffect(() => {
@@ -253,7 +254,12 @@ const AppsTab = ({
       return;
     }
 
-    await executeToolAndOpenApp(selectedTool, params);
+    const { params: validatedParams } = collectValidatedParams(
+      params,
+      formRefs.current,
+    );
+
+    await executeToolAndOpenApp(selectedTool, validatedParams);
   }, [checkValidationErrors, executeToolAndOpenApp, params, selectedTool]);
 
   const handleSelectTool = useCallback(

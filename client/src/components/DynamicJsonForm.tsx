@@ -26,10 +26,36 @@ interface DynamicJsonFormProps {
   maxDepth?: number;
 }
 
+export interface DynamicJsonFormValidationResult {
+  isValid: boolean;
+  error: string | null;
+  value: JsonValue;
+}
+
 export interface DynamicJsonFormRef {
-  validateJson: () => { isValid: boolean; error: string | null };
+  validateJson: () => DynamicJsonFormValidationResult;
   hasJsonError: () => boolean;
 }
+
+export const collectValidatedParams = (
+  baseParams: Record<string, unknown>,
+  formRefs: Record<string, DynamicJsonFormRef | null>,
+): { hasErrors: boolean; params: Record<string, unknown> } => {
+  const mergedParams = { ...baseParams };
+  let hasErrors = false;
+
+  for (const [key, ref] of Object.entries(formRefs)) {
+    if (!ref) continue;
+    const result = ref.validateJson();
+    if (!result.isValid) {
+      hasErrors = true;
+      continue;
+    }
+    mergedParams[key] = result.value;
+  }
+
+  return { hasErrors, params: mergedParams };
+};
 
 const isTypeSupported = (
   type: JsonSchemaType["type"],
@@ -244,11 +270,16 @@ const DynamicJsonForm = forwardRef<DynamicJsonFormRef, DynamicJsonFormProps>(
       }
     };
 
-    const validateJson = () => {
-      if (!isJsonMode) return { isValid: true, error: null };
+    const validateJson = (): DynamicJsonFormValidationResult => {
+      if (!isJsonMode) {
+        return { isValid: true, error: null, value };
+      }
       try {
         const jsonStr = rawJsonValue?.trim();
-        if (!jsonStr) return { isValid: true, error: null };
+        if (!jsonStr) {
+          const emptyValue = value ?? generateDefaultValue(schema);
+          return { isValid: true, error: null, value: emptyValue };
+        }
         const parsed = JSON.parse(jsonStr);
         // Clear any pending debounced update and immediately update parent
         if (timeoutRef.current) {
@@ -256,12 +287,12 @@ const DynamicJsonForm = forwardRef<DynamicJsonFormRef, DynamicJsonFormProps>(
         }
         onChange(parsed);
         setJsonError(undefined);
-        return { isValid: true, error: null };
+        return { isValid: true, error: null, value: parsed };
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Invalid JSON";
         setJsonError(errorMessage);
-        return { isValid: false, error: errorMessage };
+        return { isValid: false, error: errorMessage, value };
       }
     };
 
