@@ -595,6 +595,22 @@ const App = () => {
     localStorage.setItem("lastOauthClientSecret", oauthClientSecret);
   }, [oauthClientSecret]);
 
+  // Keep sidebar OAuth fields in sync with DCR / debugger registration (#909, #910).
+  useEffect(() => {
+    const info = authState.oauthClientInfo;
+    if (!info?.client_id) {
+      return;
+    }
+    setOauthClientId((prev) =>
+      prev === info.client_id ? prev : info.client_id,
+    );
+    if (info.client_secret !== undefined) {
+      setOauthClientSecret((prev) =>
+        prev === info.client_secret ? prev : info.client_secret ?? "",
+      );
+    }
+  }, [authState.oauthClientInfo]);
+
   useEffect(() => {
     saveInspectorConfig(CONFIG_LOCAL_STORAGE_KEY, config);
   }, [config]);

@@ -184,7 +184,17 @@ export const oauthTransitions: Record<OAuthStep, StateTransition> = {
     execute: async (context) => {
       const codeVerifier = context.provider.codeVerifier();
       const metadata = context.provider.getServerMetadata()!;
-      const clientInformation = (await context.provider.clientInformation())!;
+      // Prefer client info from the active OAuth flow state. After DCR the
+      // sidebar Client ID field may still be empty (#910), and session storage
+      // can lag behind the in-memory registration result (#909).
+      const clientInformation =
+        context.state.oauthClientInfo ??
+        (await context.provider.clientInformation());
+      if (!clientInformation) {
+        throw new Error(
+          "OAuth client information is not available for token exchange",
+        );
+      }
 
       const tokens = await exchangeAuthorization(context.serverUrl, {
         metadata,
