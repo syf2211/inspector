@@ -26,8 +26,14 @@ interface DynamicJsonFormProps {
   maxDepth?: number;
 }
 
+export interface JsonValidationResult {
+  isValid: boolean;
+  error: string | null;
+  value?: JsonValue;
+}
+
 export interface DynamicJsonFormRef {
-  validateJson: () => { isValid: boolean; error: string | null };
+  validateJson: () => JsonValidationResult;
   hasJsonError: () => boolean;
 }
 
@@ -244,11 +250,15 @@ const DynamicJsonForm = forwardRef<DynamicJsonFormRef, DynamicJsonFormProps>(
       }
     };
 
-    const validateJson = () => {
-      if (!isJsonMode) return { isValid: true, error: null };
+    const validateJson = (): JsonValidationResult => {
+      if (!isJsonMode) {
+        return { isValid: true, error: null, value };
+      }
       try {
         const jsonStr = rawJsonValue?.trim();
-        if (!jsonStr) return { isValid: true, error: null };
+        if (!jsonStr) {
+          return { isValid: true, error: null, value };
+        }
         const parsed = JSON.parse(jsonStr);
         // Clear any pending debounced update and immediately update parent
         if (timeoutRef.current) {
@@ -256,7 +266,7 @@ const DynamicJsonForm = forwardRef<DynamicJsonFormRef, DynamicJsonFormProps>(
         }
         onChange(parsed);
         setJsonError(undefined);
-        return { isValid: true, error: null };
+        return { isValid: true, error: null, value: parsed };
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Invalid JSON";

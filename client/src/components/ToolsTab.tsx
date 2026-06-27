@@ -20,6 +20,7 @@ import {
   normalizeUnionType,
   resolveRef,
 } from "@/utils/schemaUtils";
+import { flushFormParams } from "@/utils/paramUtils";
 import {
   CompatibilityCallToolResult,
   ListToolsResult,
@@ -215,10 +216,14 @@ const ToolsTab = ({
 
   // Function to check if any form has validation errors
   const checkValidationErrors = (validateChildren: boolean = false) => {
+    if (validateChildren) {
+      const { isValid } = flushFormParams(params, formRefs.current);
+      setHasValidationErrors(!isValid);
+      return !isValid;
+    }
+
     const errors = Object.values(formRefs.current).some(
-      (ref) =>
-        ref &&
-        (validateChildren ? !ref.validateJson().isValid : ref.hasJsonError()),
+      (ref) => ref && ref.hasJsonError(),
     );
     setHasValidationErrors(errors);
     return errors;
@@ -807,8 +812,12 @@ const ToolsTab = ({
                 )}
                 <Button
                   onClick={async () => {
-                    // Validate JSON inputs before calling tool
-                    if (checkValidationErrors(true)) return;
+                    const { isValid, params: runParams } = flushFormParams(
+                      params,
+                      formRefs.current,
+                    );
+                    setHasValidationErrors(!isValid);
+                    if (!isValid) return;
 
                     try {
                       setIsToolRunning(true);
@@ -828,7 +837,7 @@ const ToolsTab = ({
                       }, {});
                       await callTool(
                         selectedTool.name,
-                        params,
+                        runParams,
                         Object.keys(metadata).length ? metadata : undefined,
                         runAsTask,
                       );

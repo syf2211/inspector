@@ -1,4 +1,4 @@
-import { cleanParams } from "../paramUtils";
+import { cleanParams, flushFormParams } from "../paramUtils";
 import type { JsonSchemaType } from "../jsonUtils";
 
 describe("cleanParams", () => {
@@ -312,5 +312,57 @@ describe("cleanParams", () => {
       optionalBoolean: null,
       requiredString: "test",
     });
+  });
+});
+
+describe("flushFormParams", () => {
+  it("should merge flushed JSON values from form refs", () => {
+    const formRefs = {
+      config: {
+        validateJson: () => ({
+          isValid: true,
+          error: null,
+          value: { setting: "updated" },
+        }),
+        hasJsonError: () => false,
+      },
+      data: {
+        validateJson: () => ({
+          isValid: true,
+          error: null,
+          value: ["updated-item"],
+        }),
+        hasJsonError: () => false,
+      },
+    };
+
+    const result = flushFormParams(
+      { config: { setting: "stale" }, data: ["stale-item"] },
+      formRefs,
+    );
+
+    expect(result).toEqual({
+      isValid: true,
+      params: {
+        config: { setting: "updated" },
+        data: ["updated-item"],
+      },
+    });
+  });
+
+  it("should stop at the first invalid form ref", () => {
+    const formRefs = {
+      config: {
+        validateJson: () => ({
+          isValid: false,
+          error: "Invalid JSON",
+        }),
+        hasJsonError: () => true,
+      },
+    };
+
+    const result = flushFormParams({ config: {} }, formRefs);
+
+    expect(result.isValid).toBe(false);
   });
 });

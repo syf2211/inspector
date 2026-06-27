@@ -1,5 +1,48 @@
 import type { JsonSchemaType } from "./jsonUtils";
 
+type JsonFormRef = {
+  validateJson: () => {
+    isValid: boolean;
+    error: string | null;
+    value?: unknown;
+  };
+};
+
+export interface FlushedFormParamsResult {
+  isValid: boolean;
+  params: Record<string, unknown>;
+}
+
+/**
+ * Flushes pending JSON editor state from DynamicJsonForm refs and returns
+ * the parameters to use for tool execution. validateJson() updates parent
+ * state asynchronously, so callers must use the returned params instead of
+ * React state when invoking tools immediately after validation.
+ */
+export function flushFormParams(
+  params: Record<string, unknown>,
+  formRefs: Record<string, JsonFormRef | null>,
+): FlushedFormParamsResult {
+  const flushedParams = { ...params };
+
+  for (const [key, ref] of Object.entries(formRefs)) {
+    if (!ref) {
+      continue;
+    }
+
+    const result = ref.validateJson();
+    if (!result.isValid) {
+      return { isValid: false, params: flushedParams };
+    }
+
+    if (result.value !== undefined) {
+      flushedParams[key] = result.value;
+    }
+  }
+
+  return { isValid: true, params: flushedParams };
+}
+
 /**
  * Cleans parameters by removing undefined, null, and empty string values for optional fields
  * while preserving all values for required fields and fields with explicit default values.

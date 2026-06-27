@@ -1065,6 +1065,40 @@ describe("ToolsTab", () => {
       expect(mockCallTool).not.toHaveBeenCalled();
     });
 
+    it("should use flushed JSON values when running before debounce completes", async () => {
+      const mockCallTool = jest.fn();
+      renderToolsTab({
+        tools: [toolWithJsonParams],
+        selectedTool: toolWithJsonParams,
+        callTool: mockCallTool,
+      });
+
+      const textareas = screen.getAllByRole("textbox");
+      expect(textareas.length).toBe(2);
+
+      fireEvent.change(textareas[0], {
+        target: { value: '{ "setting": "updated" }' },
+      });
+      fireEvent.change(textareas[1], {
+        target: { value: '["updated-item"]' },
+      });
+
+      const runButton = screen.getByRole("button", { name: /run tool/i });
+      await act(async () => {
+        fireEvent.click(runButton);
+      });
+
+      expect(mockCallTool).toHaveBeenCalledWith(
+        toolWithJsonParams.name,
+        {
+          config: { setting: "updated" },
+          data: ["updated-item"],
+        },
+        undefined,
+        false,
+      );
+    });
+
     it("should allow tool execution when JSON validation passes", async () => {
       const mockCallTool = jest.fn();
       renderToolsTab({

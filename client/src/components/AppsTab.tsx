@@ -34,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import DynamicJsonForm, { DynamicJsonFormRef } from "./DynamicJsonForm";
 import { JsonSchemaType, JsonValue } from "@/utils/jsonUtils";
+import { flushFormParams } from "@/utils/paramUtils";
 import {
   generateDefaultValue,
   isPropertyRequired,
@@ -249,12 +250,21 @@ const AppsTab = ({
   }, []);
 
   const handleOpenApp = useCallback(async () => {
-    if (!selectedTool || checkValidationErrors()) {
+    if (!selectedTool) {
       return;
     }
 
-    await executeToolAndOpenApp(selectedTool, params);
-  }, [checkValidationErrors, executeToolAndOpenApp, params, selectedTool]);
+    const { isValid, params: runParams } = flushFormParams(
+      params,
+      formRefs.current,
+    );
+    setHasValidationErrors(!isValid);
+    if (!isValid) {
+      return;
+    }
+
+    await executeToolAndOpenApp(selectedTool, runParams);
+  }, [executeToolAndOpenApp, params, selectedTool]);
 
   const handleSelectTool = useCallback(
     (tool: Tool) => {
