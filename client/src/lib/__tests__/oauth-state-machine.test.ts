@@ -81,4 +81,39 @@ describe("oauthTransitions.token_request", () => {
       }),
     );
   });
+
+  it("allows token_request when flow state has client info but session storage does not", async () => {
+    const provider = {
+      codeVerifier: () => "verifier",
+      getServerMetadata: () => baseMetadata,
+      clientInformation: async () => undefined,
+      saveTokens: jest.fn(),
+    };
+
+    const state: AuthDebuggerState = {
+      oauthStep: "token_request",
+      authorizationCode: "auth-code",
+      oauthClientInfo: confidentialClient,
+      oauthMetadata: baseMetadata,
+      resource: null,
+      resourceMetadata: null,
+      resourceMetadataError: null,
+      authServerUrl: new URL("https://oauth.example.com"),
+      authorizationUrl: null,
+      oauthTokens: null,
+      validationError: null,
+      statusMessage: null,
+      latestError: null,
+      isInitiatingAuth: false,
+    };
+
+    const canProceed = await oauthTransitions.token_request.canTransition({
+      state,
+      serverUrl: "https://example.com/mcp",
+      provider: provider as never,
+      updateState: jest.fn(),
+    });
+
+    expect(canProceed).toBe(true);
+  });
 });

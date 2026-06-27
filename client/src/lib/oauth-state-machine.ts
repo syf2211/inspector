@@ -175,10 +175,13 @@ export const oauthTransitions: Record<OAuthStep, StateTransition> = {
 
   token_request: {
     canTransition: async (context) => {
+      const clientInformation =
+        context.state.oauthClientInfo ??
+        (await context.provider.clientInformation());
       return (
         !!context.state.authorizationCode &&
         !!context.provider.getServerMetadata() &&
-        !!(await context.provider.clientInformation())
+        !!clientInformation?.client_id
       );
     },
     execute: async (context) => {
