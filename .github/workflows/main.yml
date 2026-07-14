@@ -19,8 +19,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22.x'
-          cache: 'npm'
+          node-version: "22.x"
+          cache: "npm"
 
       - name: Install dependencies (root + all clients)
         # The root postinstall (scripts/install-clients.mjs) cascades
@@ -53,15 +53,6 @@ jobs:
         # running the integration suite twice.
         run: npm run coverage
 
-      - name: Run cross-client smokes
-        # End-to-end smokes through the built launcher (--help dispatch + prod
-        # CLI/web). Not part of any client's `validate`: it needs the
-        # cli/tui/launcher bundles, which `validate` above already built
-        # (smoke:web builds clients/web/dist on demand — #1486). smoke:tui
-        # self-skips here — the Ink TUI needs a real TTY (raw mode) that headless
-        # CI lacks, so its boot/render check is local-only.
-        run: npm run smoke
-
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -71,6 +62,16 @@ jobs:
       - name: Install Playwright browsers
         working-directory: ./clients/web
         run: npx playwright install --with-deps chromium
+
+      - name: Run cross-client smokes
+        # End-to-end smokes through the built launcher (--help dispatch + prod
+        # CLI/web). Not part of any client's `validate`: it needs the
+        # cli/tui/launcher bundles, which `validate` above already built
+        # (smoke:web builds clients/web/dist on demand — #1486). smoke:tui
+        # self-skips here — the Ink TUI needs a real TTY (raw mode) that headless
+        # CI lacks, so its boot/render check is local-only. smoke:web:browser
+        # (#1615) needs the Playwright chromium binary installed above.
+        run: npm run smoke
 
       - name: Run Storybook play-function tests
         working-directory: ./clients/web
@@ -106,9 +107,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22.x'
-          cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "22.x"
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Assert release tag matches package version
         # `npm publish` ships whatever `version` is in the root package.json,

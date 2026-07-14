@@ -72,16 +72,17 @@ After installing, `npm run build` builds all clients. The launcher scripts (`npm
 
 - **Repo**: https://github.com/modelcontextprotocol/inspector.git
 - **Base Branches**: v2/main (active), main (v1). v1.5/main is merged into v2/main and no longer takes new work.
-- **Project Boards**: 
+- **Project Boards**:
   - v2 - https://github.com/orgs/modelcontextprotocol/projects/28 (active board — all current work goes here)
   - v1 - https://github.com/orgs/modelcontextprotocol/projects/11 (existing inspector version, no new activity except security and bug fixes)
 
 ## Project Status and Direction
-* The main branch currently contains the legacy version of the Inspector, which we are accepting bug fixes and minor improvement PRs for.
 
-* The v1.5/main branch was the intermediate version of the Inspector, where the shared logic between the three incarnations of the Inspector was extracted into a core subsystem with InspectorClient class as the common entry point. It also included the TUI, a refactored CLI, and streamlined launcher. The branch still exists but is **frozen** — it takes no new work. It is kept as a reference point (e.g. for tracking down a regression introduced by the merge into v2/main), so do not delete it.
+- The main branch currently contains the legacy version of the Inspector, which we are accepting bug fixes and minor improvement PRs for.
 
-* The v2/main branch currently contains the new version of the web Inspector, composed of "dumb" components which accept data and callbacks as props and contain only display logic.
+- The v1.5/main branch was the intermediate version of the Inspector, where the shared logic between the three incarnations of the Inspector was extracted into a core subsystem with InspectorClient class as the common entry point. It also included the TUI, a refactored CLI, and streamlined launcher. The branch still exists but is **frozen** — it takes no new work. It is kept as a reference point (e.g. for tracking down a regression introduced by the merge into v2/main), so do not delete it.
+
+- The v2/main branch currently contains the new version of the web Inspector, composed of "dumb" components which accept data and callbacks as props and contain only display logic.
 
 The Launcher, TUI, CLI, and InspectorClient from v1.5/main have been merged into v2/main. InspectorClient is wired up to the new web Inspector. Eventually, we will replace main with v2/main, eliminating the legacy implementations.
 
@@ -98,6 +99,7 @@ Injection is a no-op when auth is disabled (`DANGEROUSLY_OMIT_AUTH`), and the gl
 ## Maintenance Rules
 
 ### Keep documentation files up to date
+
 - When adding, removing, renaming, or changing the purpose of any file or folder, update the corresponding entry in the main README.md and/or the related clients/*/README.md
 - When the structure of the project, the tech stack, or the developer setup changes, update appropriate README.md files with the details.
 - When adding new commands, dependencies, or architectural patterns, update the relevant sections of appropriate README.md files as well.
@@ -117,6 +119,7 @@ All work should be driven by items on the project board.
   - `v2/main` → `v2`
 
   Set the label at create time (`gh issue create --label v2 ...`, `gh pr create --label v2 ...`) — don't rely on backfilling later, since unlabeled PRs are easy to miss when filtering by version.
+
 - **Add the issue to the board and set Status.** After creating an issue, add it to board #28 and set its Status. (PRs are never added to the board — they're tracked through their linked issue's card.) This is the step most easily forgotten because it needs several IDs — copy the recipes below verbatim.
 - When work begins, create a feature branch and set the item's Status to **In progress** (or one of the building statuses below).
 - When work is complete:
@@ -128,34 +131,35 @@ All work should be driven by items on the project board.
 
 #### V2 board (#28) `gh` recipes
 
-The board is an **org project**, so all commands use `--owner modelcontextprotocol` and the numeric project `28`. The project node id and Status field id are stable. **The Status *option* ids are NOT stable — they are regenerated whenever the Status field's option list is edited** (see the ⚠️ hazard below). If any option id here is rejected, re-fetch the current set with:
+The board is an **org project**, so all commands use `--owner modelcontextprotocol` and the numeric project `28`. The project node id and Status field id are stable. **The Status _option_ ids are NOT stable — they are regenerated whenever the Status field's option list is edited** (see the ⚠️ hazard below). If any option id here is rejected, re-fetch the current set with:
 
 ```sh
 gh project field-list 28 --owner modelcontextprotocol --format json \
   | jq '.fields[] | select(.name=="Status") | .options'
 ```
 
-| Thing | ID |
-| --- | --- |
-| Project node ID | `PVT_kwDOCt2Azc4BJVxt` |
+| Thing           | ID                               |
+| --------------- | -------------------------------- |
+| Project node ID | `PVT_kwDOCt2Azc4BJVxt`           |
 | Status field ID | `PVTSSF_lADOCt2Azc4BJVxtzg5iI8c` |
 
 Status option IDs (`--single-select-option-id`) — **last verified 2026-07-09**:
 
-| Status | Option ID |
-| --- | --- |
-| Todo | `fbdaf21e` |
+| Status                    | Option ID  |
+| ------------------------- | ---------- |
+| Todo                      | `fbdaf21e` |
 | Building CLI / TUI / CORE | `4ac261ee` |
-| Building Web | `c28da89f` |
-| MCP Apps Extension | `73d0b807` |
-| SDK V2 + New Spec | `1bbb6f57` |
-| In Progress | `195df262` |
-| In Review | `159c8a02` |
-| Done | `248a3910` |
+| Building Web              | `c28da89f` |
+| MCP Apps Extension        | `73d0b807` |
+| SDK V2 + New Spec         | `1bbb6f57` |
+| In Progress               | `195df262` |
+| In Review                 | `159c8a02` |
+| Done                      | `248a3910` |
 
 Use **Todo** for approved-but-not-started work, **In Progress** for general active work, one of the **Building** statuses (or **MCP Apps Extension** / **SDK V2 + New Spec**) while actively coding that surface, **In Review** once a PR is open, and **Done** on merge.
 
-> ⚠️ **Never add, rename, or remove a board column (Status option) with the `updateProjectV2Field` GraphQL mutation unless you pass every existing option's `id`.** That mutation does a **full replace** of the option list: if you resend options by name/color/description but omit their `id`s, GitHub **deletes all existing options and mints new ones**, which **orphans the Status of every card on the board** (all items go blank) *and* invalidates every option id in the table above. This has happened once (required reconstructing ~197 items' statuses by inference). Safe alternatives, in order of preference:
+> ⚠️ **Never add, rename, or remove a board column (Status option) with the `updateProjectV2Field` GraphQL mutation unless you pass every existing option's `id`.** That mutation does a **full replace** of the option list: if you resend options by name/color/description but omit their `id`s, GitHub **deletes all existing options and mints new ones**, which **orphans the Status of every card on the board** (all items go blank) _and_ invalidates every option id in the table above. This has happened once (required reconstructing ~197 items' statuses by inference). Safe alternatives, in order of preference:
+>
 > 1. **Add/rename/remove a column in the GitHub web UI** (Project #28 → Status field settings). This preserves ids of untouched options and never orphans cards.
 > 2. If you must script it, first `gh api graphql` the current options **with their `id`s**, then call `updateProjectV2Field` echoing back every existing option **including its `id`**, appending only the new one. Verify afterward that no card lost its Status.
 >
@@ -181,6 +185,7 @@ gh project item-edit --project-id PVT_kwDOCt2Azc4BJVxt --id "$ITEM_ID" --field-i
 ```
 
 ### Always test new or modified code
+
 - Ensure all code has corresponding tests
 - Ensure test coverage for each file is at least 90%
 - In unit tests that expect error output, suppress it from the console
@@ -198,24 +203,28 @@ gh project item-edit --project-id PVT_kwDOCt2Azc4BJVxt --id "$ITEM_ID" --field-i
 - Use `renderWithMantine` from `src/test/renderWithMantine.tsx` to render components — it wraps in `MantineProvider` with the project theme
 
 ### Responding to Code Reviews
+
 - When asked to respond to a code review of a PR,
   - it is not necessary to implement all suggestions
   - you are free to implement suggestions in a different way or to ignore if there is a good reason
   - after making the changes, respond to each review comment with what was done (or why it was ignored)
 
 ### Mandatory pre-push gate
+
 - ALWAYS do `npm run format` before committing — it auto-fixes any Prettier issues. `validate` runs `format:check` (the non-fixing variant) and will fail in CI on any unformatted file, so always run the auto-fixer first rather than letting `format:check` catch it.
-- **`npm run ci` is the mandatory pre-push command** — it mirrors `.github/workflows/main.yml` (minus `npm install`): `validate` → `coverage` → `smoke` → Storybook play-function tests (installs Playwright chromium if needed). It now runs **`npm run coverage`**, the per-file ≥90 gate (lines/statements/functions/branches) that CI enforces — so `npm run ci` is a true superset of GitHub CI, and passing it locally means CI's gates will pass. Expect several minutes. **`npm run validate`** remains the fast inner-loop check during development (unit tests only — no coverage gate, no smoke, no Storybook), but it is **NOT** an acceptable substitute for `npm run ci` before pushing: `validate` runs `test`, not `test:coverage`, so it does **zero** coverage gating. Skipping the gate is how a push passes every fast local check and still fails CI (this exact gap broke PR #1601 on a function-coverage regression).
+- **`npm run ci` is the mandatory pre-push command** — it mirrors `.github/workflows/main.yml` (minus `npm install`): `validate` → `coverage` → `ci:playwright` (installs Chromium) → `smoke` → Storybook play-function tests. It now runs **`npm run coverage`**, the per-file ≥90 gate (lines/statements/functions/branches) that CI enforces — so `npm run ci` is a true superset of GitHub CI, and passing it locally means CI's gates will pass. Expect several minutes. **`npm run validate`** remains the fast inner-loop check during development (unit tests only — no coverage gate, no smoke, no Storybook), but it is **NOT** an acceptable substitute for `npm run ci` before pushing: `validate` runs `test`, not `test:coverage`, so it does **zero** coverage gating. Skipping the gate is how a push passes every fast local check and still fails CI (this exact gap broke PR #1601 on a function-coverage regression).
 - ALWAYS do `npm run format` before committing, then **`npm run ci`** before pushing. From the repo root, `validate` chains the four per-client validations (`validate:web` → `validate:cli` → `validate:tui` → `validate:launcher`); each delegates to that client's own `npm run validate` = `format:check` + `lint` + `build` + `test` in its own folder (no coverage — fast). Every client is self-validating and the top level just chains them, building each client's bundle along the way (no cross-client build dependencies).
   - The one CLI nuance: `clients/cli`'s out-of-process `e2e.test.ts` spawns the built binary, so its `test` **builds first** via `pretest` (`test-servers:build && build`). To avoid building it twice, `clients/cli`'s `validate` folds that in — it is `format:check && lint && test` with **no** separate `build` step (the other clients, whose tests don't spawn their bundle, keep an explicit `build`). `validate:web`/`validate:tui`/`validate:launcher` are the uniform `format:check && lint && build && test`.
   - **`npm run coverage`** is the per-file ≥90 gate and is now part of `npm run ci` — never treat it as optional before a push. It supersedes the old standalone `test:integration` step: web's `test:coverage` runs the `unit` **and** `integration` projects under v8 instrumentation, so `coverage` both enforces the ≥90 gate and exercises the same web integration paths CI covers.
-- **`smoke` is NOT part of `validate`** — it is included in `npm run ci`. It runs `smoke:launcher` (`--help` dispatch) plus the prod `smoke:cli` / `smoke:tui` / `smoke:web`, and contains **no build commands** — it assumes the cli/tui/launcher bundles already exist (a full `validate` builds them; `smoke:web` builds `clients/web/dist` on demand). CI runs `validate`, then the `coverage` gate (which also covers the web integration project), then `smoke`. Storybook is the only CI step left out (see below).
+- **`smoke` is NOT part of `validate`** — it is included in `npm run ci`. It runs `smoke:launcher` (`--help` dispatch) plus the prod `smoke:cli` / `smoke:tui` / `smoke:web` / `smoke:web:browser`, and contains **no build commands** — it assumes the cli/tui/launcher bundles already exist (a full `validate` builds them; `smoke:web` builds `clients/web/dist` on demand). CI runs `validate`, then the `coverage` gate (which also covers the web integration project), then installs Playwright chromium, then `smoke`. Storybook is the only CI step left out (see below).
 - `smoke:launcher` (`scripts/smoke-launcher.mjs`) runs the built launcher with `--help`, `--cli --help`, and `--tui --help`, asserting each exits 0 and prints that mode's usage banner (which also proves the launcher resolved and loaded the right client build). It's the cheap dispatch check before the heavier prod smokes below.
 - `smoke:web` (`scripts/smoke-web.mjs`) starts `mcp-inspector --web` (prod, no `--dev`) against the built `clients/web/dist` and asserts `GET /` serves the SPA (HTTP 200) with the injected `__INSPECTOR_API_TOKEN__`. Prod `--web` serves from `clients/web/dist`, which ships in the published package but is absent in a fresh checkout — the runner builds it on demand (`build:client` = `vite build`) on first launch, or exits with an actionable error if that build can't run (see `clients/web/server/ensure-web-build.ts` and the launcher README). `--dev` runs Vite directly and never needs `dist`.
+- `smoke:web:browser` (`scripts/smoke-web-browser.mjs`, #1615) runs the same prod web server and opens the built SPA in headless Chromium. It asserts the first meaningful UI frame renders (the "Add Servers" control) with no uncaught page errors — catching regressions where Node-only code leaks into the browser bundle and blanks the app at runtime. Needs the Playwright chromium binary (`npx playwright install chromium` from `clients/web`); CI installs it before `npm run smoke`.
 - `smoke:cli` (`scripts/smoke-cli.mjs`) drives `mcp-inspector --cli` through the built launcher against the bundled stdio test server via a temp `--catalog`: it asserts `tools/list` returns the server's tools (real connect over stdio), the default writable catalog is seeded empty on first run, a missing read-only `--config` errors without seeding, and `--catalog` + `--config` is rejected. `smoke:tui` (`scripts/smoke-tui.mjs`) launches `mcp-inspector --tui --catalog <temp>` and asserts the Ink app renders its first frame (the "MCP Servers" panel) within a timeout, then SIGTERMs it — a shallow boot/render check, not full interaction. **`smoke:tui` is local-only: it self-skips when `process.env.CI` is set**, because the Ink TUI needs a real TTY (raw mode) that headless CI lacks — so run it (via `npm run smoke`) on your own machine before pushing. Both build `test-servers/build` on demand if it's missing.
-- Storybook play-function tests (`clients/web` `test:storybook`) run in headless Chromium via `@vitest/browser-playwright` (~10s). They are part of `npm run ci` (which installs Playwright chromium first); kept out of `validate` because they need the browser binary and are slower than the unit suite.
+- Storybook play-function tests (`clients/web` `test:storybook`) run in headless Chromium via `@vitest/browser-playwright` (~10s). They are part of `npm run ci` (after `ci:playwright` installs the browser binary); kept out of `validate` because they need the browser binary and are slower than the unit suite.
 
 ### Typescript instructions
+
 - Use TypeScript for all new code
 - Follow TypeScript best practices and coding standards
 - NEVER use 'any' as a type
@@ -227,6 +236,7 @@ gh project item-edit --project-id PVT_kwDOCt2Azc4BJVxt --id "$ITEM_ID" --field-i
 - Regularly review and refactor TypeScript code to ensure it remains well-structured and adheres to evolving best practices
 
 ## React instructions
+
 - UI Components
   - We are using the Mantine component library for UI.
   - Instructions are at https://mantine.dev/llms.txt
@@ -249,32 +259,32 @@ gh project item-edit --project-id PVT_kwDOCt2Azc4BJVxt --id "$ITEM_ID" --field-i
     - When a theme variant needs a CSS class for nested/pseudo selectors, use `classNames` in the theme extension to auto-assign it — never add `className` manually in JSX for theme-styled components.
     - Example — subcomponent constant with `withProps`:
     ```tsx
-      const CardContent = Group.withProps({
-        flex: 1,
-        align: 'flex-start',
-        justify: 'space-between',
-        wrap: 'nowrap',
-      });
-      return <CardContent> ... </CardContent>
+    const CardContent = Group.withProps({
+      flex: 1,
+      align: "flex-start",
+      justify: "space-between",
+      wrap: "nowrap",
+    });
+    return <CardContent> ... </CardContent>;
     ```
     - Example — theme variant with auto-assigned className for nested selectors:
     ```tsx
-      // src/theme/Paper.ts
-      export const ThemePaper = Paper.extend({
-        classNames: (_theme, props) => {
-          if (props.variant === 'message') return { root: 'message' };
-          return {};
-        },
-        styles: (_theme, props) => {
-          if (props.variant === 'message') {
-            return { root: { padding: '1.5rem', borderRadius: 12 } };
-          }
-          return { root: {} };
-        },
-      }),
+    // src/theme/Paper.ts
+    export const ThemePaper = Paper.extend({
+      classNames: (_theme, props) => {
+        if (props.variant === "message") return { root: "message" };
+        return {};
+      },
+      styles: (_theme, props) => {
+        if (props.variant === "message") {
+          return { root: { padding: "1.5rem", borderRadius: 12 } };
+        }
+        return { root: {} };
+      },
+    });
 
-      // Component.tsx
-      const MessageContainer = Paper.withProps({ variant: 'message' });
+    // Component.tsx
+    const MessageContainer = Paper.withProps({ variant: "message" });
     ```
 - Theme files vs. Storybook element components
   - **Theme files** (`src/theme/<Component>.ts`) and **element components** (`src/components/elements/`) serve different purposes and both are needed.
